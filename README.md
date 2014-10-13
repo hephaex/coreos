@@ -54,8 +54,15 @@ config.vm.synced_folder ".", "/home/{your folder}/share", id: "core", :nfs => tr
 
 ## Initialization virtual machine on local machine.
 
+* start VM
 ```
 vagrant up
+```
+
+* Doing "vagrant up" you'll face on password request for shared folder access"
+
+* connect CoreOS VM
+```
 vagrant ssh
 ```
 
