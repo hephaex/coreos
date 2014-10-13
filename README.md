@@ -66,4 +66,12 @@ vagrant up
 vagrant ssh
 ```
 
+## Docker Forwarding
+
+To use the docker on your VM, you'll export Docker_HOST setting.
+
+```
+core@core-01 ~ $ export DOCKER_HOST=tcp://localhost:2375
+```
+
 
