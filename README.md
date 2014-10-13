@@ -9,6 +9,13 @@ When CoreOS setting complete, you'll have a single CoreOS virtual machine runnin
  - [VirtualBox][virtualbox] 4.3.14 or greater.
  - [Vagrant][vagrant] 1.6.5 or greater.
 
+## Clone my CoreOS Vagrant repo
+
+```
+$ git clone https://github.com/hephaex/coreos.git
+$ cd coreos
+```
+
 ## Edit your own virtual machine enviroment.
 
 * open & edit Vagrantfile
