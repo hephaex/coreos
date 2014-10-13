@@ -92,6 +92,22 @@ REPOSITORY          TAG                 IMAGE ID            CREATED             
 centos              centos6             68edf809afe7        11 days ago         212.7 MB
 ```
 
+* delete docker image
+```
+core@core-01 ~ $ docker rmi centos:latest
+Untagged: centos:latest
+Deleted: 87e5b6b3ccc119ebfe9344583fb3f77804d6e3d9a3553d916fbf807028310e8e
+```
+
+* docker process check & kill all
+```
+core@core-01 ~ $ docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                       PORTS               NAMES
+abc10c9dce94        centos:centos6      "/bin/bash"         About an hour ago   Exited (127) 5 seconds ago                       mad_elion
+core@core-01 ~ $ docker rm `docker ps -a -q`
+abc10c9dce94
+```
+
 * run CentOS6
 ```
 core@core-01 ~ $ docker run -i -t centos:centos6 /bin/bash
