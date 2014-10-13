@@ -17,6 +17,27 @@ When CoreOS setting complete, you'll have a single CoreOS virtual machine runnin
 # vi Vagrantfile
 ```
 
+### VM setting
+* Number of VM instances
+```
+$num_instances = 1
+```
+
+* CoreOS Channel setting
+ - there are three kinds of distribute channel. "Stable","Alpha",and "Beta".
+```
+* $update_channel = "stable"
+```
+* VM memory setting
+```
+$vb_memory = 2048
+```
+
+* VM cpus
+```
+$vb_cpus = 2
+```
+
 * Shared Folder setup
 
 ```
