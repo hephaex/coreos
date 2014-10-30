@@ -1,143 +1,110 @@
 # CoreOS Vagrant
 
- This repo provides a Vagrantfile to create a CoreOS virtual machine using the VirtualBox hypervisor.
-When CoreOS setting complete, you'll have a single CoreOS virtual machine running on your local machine.
+ This repo provides a template Vagrantfile to create a CoreOS virtual machine using the VirtualBox software hypervisor.
+After setup is complete you will have a single CoreOS virtual machine running on your local machine.
 
 ## Streamlined setup
 
-* Install Hypervisor & Vagrant
- - [VirtualBox][virtualbox] 4.3.14 or greater.
- - [Vagrant][vagrant] 1.6.5 or greater.
+1) Install dependencies
 
-## Clone my CoreOS Vagrant repo
+* [VirtualBox][virtualbox] 4.3.10 or greater.
+* [Vagrant][vagrant] 1.6 or greater.
 
-```
-$ git clone https://github.com/hephaex/coreos.git
-$ cd coreos
-```
-
-## Edit your own virtual machine enviroment.
-
-* open & edit Vagrantfile
+2) Clone this project and get it running!
 
 ```
-# vi Vagrantfile
+git clone https://github.com/coreos/coreos-vagrant/
+cd coreos-vagrant
 ```
 
-### VM setting
-* Number of VM instances
+3) Startup and SSH
+
+There are two "providers" for Vagrant with slightly different instructions.
+Follow one of the following two options:
+
+** VirtualBox Provider 
+
+The VirtualBox provider is the default Vagrant provider. Use this if you are unsure.
+
 ```
-$num_instances = 1
+vagrant up
+vagrant ssh
 ```
 
-* CoreOS Channel setting
- - there are three kinds of distribute channel. "Stable","Alpha",and "Beta".
+**VMware Provider**
+
+ The VMware provider is a commercial addon from Hashicorp that offers better stability and speed.
+If you use this provider follow these instructions.
+
 ```
-* $update_channel = "stable"
-```
-* VM memory setting
-```
-$vb_memory = 2048
+vagrant up --provider vmware_fusion
+vagrant ssh
 ```
 
-* VM cpus
-```
-$vb_cpus = 2
-```
+``vagrant up`` triggers vagrant to download the CoreOS image (if necessary) and (re)launch the instance
 
-* Shared Folder setup
+``vagrant ssh`` connects you to the virtual machine.
+ Configuration is stored in the directory so you can always return to this machine by executing vagrant ssh from the directory where the Vagrantfile was located.
+
+3) Get started [using CoreOS][using-coreos]
+
+[virtualbox]: https://www.virtualbox.org/
+[vagrant]: https://www.vagrantup.com/downloads.html
+[using-coreos]: http://coreos.com/docs/using-coreos/
+
+#### Shared Folder Setup
+
+ There is optional shared folder setup.
+You can try it out by adding a section to your Vagrantfile like this.
 
 ```
 config.vm.network "private_network", ip: "172.17.8.150"
-config.vm.synced_folder ".", "/home/{your folder}/share", id: "core", :nfs => true,  :mount_options   => ['nolock,vers=3,udp']
+config.vm.synced_folder ".", "/home/core/share", id: "core", :nfs => true,  :mount_options   => ['nolock,vers=3,udp']
 ```
 
-## Initialization virtual machine on local machine.
+ After a 'vagrant reload' you will be prompted for your local machine password.
 
-* start VM
-```
-vagrant up
-```
+#### Provisioning with user-data
 
-* Doing "vagrant up" you'll face on password request for shared folder access"
+ The Vagrantfile will provision your CoreOS VM(s) with [coreos-cloudinit][coreos-cloudinit] if a `user-data` file is found in the project directory.
+coreos-cloudinit simplifies the provisioning process through the use of a script or cloud-config document.
 
-* connect CoreOS VM
+ To get started, copy `user-data.sample` to `user-data` and make any necessary modifications.
+Check out the [coreos-cloudinit documentation][coreos-cloudinit] to learn about the available features.
+
+[coreos-cloudinit]: https://github.com/coreos/coreos-cloudinit
+
+#### Configuration
+
+ The Vagrantfile will parse a `config.rb` file containing a set of options used to configure your CoreOS cluster.
+See `config.rb.sample` for more information.
+
+## Cluster Setup
+
+ Launching a CoreOS cluster on Vagrant is as simple as configuring `$num_instances` in a `config.rb` file to 3 (or more!) and running `vagrant up`.
+Make sure you provide a fresh discovery URL in your `user-data` if you wish to bootstrap etcd in your cluster.
+
+## New Box Versions
+
+ CoreOS is a rolling release distribution and versions that are out of date will automatically update.
+If you want to start from the most up to date version you will need to make sure that you have the latest box file of CoreOS.
+Simply remove the old box file and vagrant will download the latest one the next time you `vagrant up`.
+
 ```
-vagrant ssh
+vagrant box remove coreos --provider vmware_fusion
+vagrant box remove coreos --provider virtualbox
 ```
 
 ## Docker Forwarding
 
-To use the docker on your VM, you'll export Docker_HOST setting.
+ By setting the `$expose_docker_tcp` configuration value you can forward a local TCP port to docker on
+each CoreOS machine that you launch. The first machine will be available on the port that you specify
+and each additional machine will increment the port by 1.
 
-```
-core@core-01 ~ $ export DOCKER_HOST=tcp://localhost:2375
-```
+Follow the [Enable Remote API instructions][coreos-enabling-port-forwarding] to get the CoreOS VM setup to work with port forwarding.
 
-## CentOS Docker
-* Download CentOS image for Docker
-```
-docker pull centos:centos6
-```
+[coreos-enabling-port-forwarding]: https://coreos.com/docs/launching-containers/building/customizing-docker/#enable-the-remote-api-on-a-new-socket
 
-* You can choise varios centos version for docekr.
- - CentOS5.x: docker pull centos:centos5
- - CentOS6.x: docker pull centos:centos6
- - CentOS7.x: docker pull centos:latest
+ Then you can then use the `docker` command from your local shell by setting `DOCKER_HOST`:
 
-* check docker images
-```
-core@core-01 ~ $ docker images
-REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
-centos              centos6             68edf809afe7        11 days ago         212.7 MB
-```
-
-* delete docker image
-```
-core@core-01 ~ $ docker rmi centos:latest
-Untagged: centos:latest
-Deleted: 87e5b6b3ccc119ebfe9344583fb3f77804d6e3d9a3553d916fbf807028310e8e
-```
-
-* docker process check & kill all
-```
-core@core-01 ~ $ docker ps -a
-CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS                       PORTS               NAMES
-abc10c9dce94        centos:centos6      "/bin/bash"         About an hour ago   Exited (127) 5 seconds ago                       mad_elion
-core@core-01 ~ $ docker rm `docker ps -a -q`
-abc10c9dce94
-```
-
-* run CentOS6
-```
-core@core-01 ~ $ docker run -i -t centos:centos6 /bin/bash
-bash-4.1# uname -a
-Linux abc10c9dce94 3.16.2+ #2 SMP Tue Oct 7 01:50:34 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
-```
-
-* update RPMs
-```
-bash-4.1# yum update
-```
-
-* install RPMs (ex. ruby-1.8.7)
-```
-bash-4.1# yum install ruby
-Running Transaction
- Installing : compat-readline5-5.2-17.1.el6.x86_64                         1/3
- Installing : ruby-libs-1.8.7.352-13.el6.x86_64                            2/3
- Installing : ruby-1.8.7.352-13.el6.x86_64                                 3/3
- Verifying  : ruby-1.8.7.352-13.el6.x86_64                                 1/3
- Verifying  : compat-readline5-5.2-17.1.el6.x86_64                         2/3
- Verifying  : ruby-libs-1.8.7.352-13.el6.x86_64                            3/3
-
-Installed:
-  ruby.x86_64 0:1.8.7.352-13.el6
-
-Dependency Installed:
-  compat-readline5.x86_64 0:5.2-17.1.el6   ruby-libs.x86_64 0:1.8.7.352-13.el6
-
-Complete!
-bash-4.1# ruby --version
-ruby 1.8.7 (2011-06-30 patchlevel 352) [x86_64-linux]
-```
+    export DOCKER_HOST=tcp://localhost:2375
